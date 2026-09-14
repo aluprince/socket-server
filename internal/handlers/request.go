@@ -21,18 +21,40 @@ func ParseRequest(data []byte) Request {
 
 	//Separating head from body
 	parts := strings.Split(buffer, "\r\n\r\n")
-	requestLine := strings.Split(parts[0], "\r\n")[0]
+	lines := strings.Split(parts[0], "\r\n")
+	requestLine := lines[0]
 	requestParts := strings.Split(requestLine, " ")
+
+
+	//Parsing HTTP Headers Cleanly
+	Headers := make(map[string][]string)
+	// headerSection := strings.Split(parts[0], "\r\n")[1]
+	seperateHeaders := lines[1:]
+	
+	fmt.Printf(">>We have about %v headers >>", len(seperateHeaders))
+	for i := 0; i < len(seperateHeaders); i++ {
+		sep := strings.SplitN(seperateHeaders[i], ":", 2)
+
+		key := strings.TrimSpace(sep[0])
+		value := strings.TrimSpace(sep[1])
+
+		Headers[key] = []string{value}
+	}
 
 	req := Request{
 		Method: requestParts[0],
 		Path: requestParts[1],
 		Proto: requestParts[2],
+		Headers: Headers,
 	}
+
 	fmt.Println("--------------Request Parsed----------------")
 	fmt.Println("Method: ", req.Method)
 	fmt.Println("Path: ", req.Path)
 	fmt.Println("Protocol: ", req.Proto)
+
+	fmt.Println("------------REQUEST HEADERS-------------")
+	fmt.Println(">>>Headers: ", req.Headers)
 
 	
 	return req
