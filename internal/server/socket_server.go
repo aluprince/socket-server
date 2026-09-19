@@ -16,31 +16,41 @@ func RunServer() {
 	fmt.Printf("Listening at this address >>> %v >>>", addr)
 
 	if err != nil {
-		log.Fatalf("Error Found: %v", err)
+		log.Printf("Error Found: %v", err)
 	}
 	
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			log.Fatalf("Error Found: %v", err)
+			log.Printf("Error Found: %v", err)
 			continue
 		}
 		fmt.Println("New connection:", conn.RemoteAddr())
+		go handleConnection(conn)
 
-		buffer := make([]byte, 1024)
-		
-		n, err := conn.Read(buffer)
-		if err != nil {
-			log.Fatalf("Error; %v", err)
-		}
-		fmt.Println(string(buffer[:n]))
-		requestParsed := handler.ParseRequest(buffer[:n])
-		response := handler.HandleRequest(requestParsed)
-
-		conn.Write([]byte(response))
-
-		conn.Close()
 	}
 }
 
 
+
+func handleConnection(conn net.Conn) {
+	defer conn.Close()
+	buffer := make([]byte, 1024)
+		
+	n, err := conn.Read(buffer)
+	if err != nil {
+		log.Fatalf("Error; %v", err)
+	}
+	fmt.Println(string(buffer[:n]))
+	requestParsed := handler.ParseRequest(buffer[:n])
+	response := handler.HandleRequest(requestParsed)
+
+	fmt.Printf("RESPONSE: %q\n", response)
+
+	k, err := conn.Write([]byte(response))
+	if err != nil {
+    	log.Printf("Write error: %v", err)
+	}
+
+	fmt.Printf("Wrote %d bytes\n", k)
+}
