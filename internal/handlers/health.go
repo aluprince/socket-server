@@ -2,25 +2,39 @@ package handler
 
 import "fmt"
 
+
 // GET REQUESTS
-func Health() string {
+func Health() Response {
     body := "Active Health!"
 
-    return "HTTP/1.1 200 OK\r\n" +
+    responseString := "HTTP/1.1 200 OK\r\n" +
         "Content-Type: text/plain\r\n" +
         fmt.Sprintf("Content-Length: %d\r\n", len([]byte(body))) +
         "\r\n" +
         body
+
+    response := Response{
+        StatusCode: getStatusCode(responseString),
+        Body: responseString,
+    }
+
+    return response
 }
 
 //POST REQUESTS
 
-func userCreated() string {
+func userCreated() Response {
     body := "User Has Been Created"
 
-    return "HTTP/1.1 201 OK\r\n" +
+    responseString := "HTTP/1.1 201 CREATED\r\n" +
         "Content-Type: text/plain\r\n" +
         fmt.Sprintf("Content-Lenght: %d\r\n", len([]byte(body))) +
         "\r\n" +
         body
+
+    response := Response{
+        StatusCode: getStatusCode(responseString),
+        Body: responseString,
+    }
+    return response
 }

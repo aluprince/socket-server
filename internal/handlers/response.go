@@ -3,9 +3,16 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 )
 
+type Response struct {
+    StatusCode string
+    Body       string
+}
+
+type Handler func(Request) Response
 
 type User struct {
     Name string `json:"name"`
@@ -14,7 +21,8 @@ type User struct {
 
 var user User
 
-func HandleRequest(req Request) string {
+
+func HandleRequest(req Request) Response {
 	fmt.Println(">>> Testing Request Handler")
 	if req.Path == "/" {
 		return Home()
@@ -40,4 +48,14 @@ func HandleRequest(req Request) string {
 
 	
 	return NotFound()
+}
+
+
+func getStatusCode(response string) string {
+	lines := strings.SplitN(response, "\r\n", 2)
+
+	if len(lines) == 0 {
+		return "Unknown"
+	}
+	return lines[0]
 }

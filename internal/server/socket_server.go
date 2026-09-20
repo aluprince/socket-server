@@ -5,13 +5,14 @@ import (
 	"log"
 	"net"
 	"github.com/aluprince/socket-server/internal/handlers"
+	"github.com/aluprince/socket-server/internal/middleware"
 )
 
 var addr = "127.0.0.1:8000"
 
 
 func RunServer() {
-	fmt.Println(">>>Starting Server Hold On...")
+	log.Printf(">>>Starting Server Hold On...")
 	ln, err := net.Listen("tcp", addr)
 	fmt.Printf("Listening at this address >>> %v >>>", addr)
 
@@ -25,7 +26,7 @@ func RunServer() {
 			log.Printf("Error Found: %v", err)
 			continue
 		}
-		fmt.Println("New connection:", conn.RemoteAddr())
+		log.Printf("New connection: %v", conn.RemoteAddr())
 		go handleConnection(conn)
 
 	}
@@ -39,18 +40,22 @@ func handleConnection(conn net.Conn) {
 		
 	n, err := conn.Read(buffer)
 	if err != nil {
-		log.Fatalf("Error; %v", err)
+		log.Printf("Error; %v", err)
 	}
 	fmt.Println(string(buffer[:n]))
+
 	requestParsed := handler.ParseRequest(buffer[:n])
-	response := handler.HandleRequest(requestParsed)
+	
+	appHandler := middleware.LogResponseMiddleware(middleware.LogMiddleware(middleware.AuthMiddleware(handler.HandleRequest)))
 
-	fmt.Printf("RESPONSE: %q\n", response)
+	response := appHandler(requestParsed)
 
-	k, err := conn.Write([]byte(response))
+
+	k, err := conn.Write([]byte(response.Body))
 	if err != nil {
     	log.Printf("Write error: %v", err)
 	}
 
-	fmt.Printf("Wrote %d bytes\n", k)
+
+ 	log.Printf("Wrote %d bytes\n", k)
 }
